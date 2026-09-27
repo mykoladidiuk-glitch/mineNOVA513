@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="tabTitle">Google Docs</title>
+  <link id="tabFavicon" rel="icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            nova: {
+              bg: '#090d16',
+              card: '#131b2e',
+              border: 'rgba(255, 255, 255, 0.08)',
+              accent: '#06b6d4',
+              purple: '#8b5cf6',
+              pink: '#ec4899'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080c14;
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(19, 27, 46, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(19, 27, 46, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -10px rgba(6, 182, 212, 0.15);
+    }
+    .glass-nav {
+      background: rgba(8, 12, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    canvas {
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- Top Navigation Header -->
+  <header class="glass-nav sticky top-0 z-40 w-full px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Logo -->
+      <a href="#" onclick="filterCategory('All')" class="flex items-center space-x-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-shapes text-white text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xl font-extrabold bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">NOVA</span>
+          <span class="text-[10px] uppercase tracking-widest text-cyan-400 font-semibold block -mt-1">PORTAL</span>
+        </div>
+      </a>
+
+      <!-- Search Input (Desktop) -->
+      <div class="flex-1 max-w-md relative hidden sm:block">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+        <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search unblocked games..." 
+          class="w-full bg-slate-900/90 text-sm text-gray-200 placeholder-gray-400 pl-10 pr-4 py-2 rounded-xl border border-slate-700/60 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+      </div>
+
+      <!-- Stealth & Utility Toolbar -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- About Blank Launcher -->
+        <button onclick="launchAboutBlank()" title="Open site inside an unblockable about:blank frame" 
+          class="px-3 py-2 bg-slate-900/80 hover:bg-slate-800 text-xs font-medium text-cyan-300 rounded-xl border border-slate-700/80 flex items-center space-x-1.5 transition-all active:scale-95">
+          <i class="fa-solid fa-mask text-xs"></i>
+          <span class="hidden md:inline">about:blank</span>
+        </button>
+
+        <!-- Tab Cloak Customizer -->
+        <button onclick="toggleTabCloakModal()" title="Camouflage tab title and favicon" 
+          class="px-3 py-2 bg-slate-900/80 hover:bg-slate-800 text-xs font-medium text-purple-300 rounded-xl border border-slate-700/80 flex items-center space-x-1.5 transition-all active:scale-95">
+          <i class="fa-solid fa-user-secret text-xs"></i>
+          <span class="hidden md:inline">Cloak Tab</span>
+        </button>
+
+        <!-- Panic Button -->
+        <button onclick="triggerPanic()" title="Press [P] anytime to panic hide page" 
+          class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 flex items-center space-x-1.5 transition-all hover:scale-105 active:scale-95">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>PANIC [P]</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Search Input -->
+    <div class="mt-3 sm:hidden">
+      <input type="text" id="mobileSearchInput" onkeyup="handleMobileSearch()" placeholder="Search games..." 
+        class="w-full bg-slate-900 text-sm text-gray-200 placeholder-gray-400 px-4 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-cyan-500">
+    </div>
+  </header>
+
+  <!-- Main Portal Section -->
+  <main class="max-w-7xl mx-auto px-4 lg:px-8 pt-6 pb-16 flex-1 w-full">
+    
+    <!-- Info Banner -->
+    <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-purple-950/60 border border-indigo-500/20 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0 border border-indigo-500/30">
+          <i class="fa-solid fa-shield-halved text-lg"></i>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-gray-100">100% Self-Contained Web Engines</p>
+          <p class="text-xs text-gray-400">All games run natively using HTML5 Canvas & local JS logic. Zero external iframe errors!</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs">
+        <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-medium flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Network Active
+        </span>
+      </div>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 scrollbar-none" id="categoryContainer">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- Game Grid Container -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="gameGrid">
+      <!-- Game Cards Injected via JS -->
+    </div>
+
+    <!-- Empty Search State -->
+    <div id="noResults" class="hidden text-center py-20 space-y-3">
+      <i class="fa-solid fa-ghost text-5xl text-slate-700"></i>
+      <p class="text-gray-400 text-sm font-medium">No playable games found matching your filter.</p>
+      <button onclick="clearSearch()" class="px-4 py-2 bg-slate-800 text-xs text-cyan-400 rounded-xl border border-slate-700 hover:bg-slate-700 transition">Clear Filters</button>
+    </div>
+  </main>
+
+  <!-- PLAYABLE GAME MODAL CONTAINER -->
+  <div id="gameModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex-col justify-between">
+    <!-- Modal Header -->
+    <div class="p-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6">
+      <div class="flex items-center space-x-3">
+        <button onclick="closeGameModal()" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+          <i class="fa-solid fa-arrow-left text-lg"></i>
+        </button>
+        <div>
+          <h2 id="modalGameTitle" class="text-base font-bold text-white leading-tight">Game Title</h2>
+          <span id="modalGameCategory" class="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">Category</span>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button onclick="resetCurrentGame()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 border border-slate-700 transition">
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+          <span>Restart</span>
+        </button>
+        <button onclick="toggleModalFullscreen()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 border border-slate-700 transition">
+          <i class="fa-solid fa-expand text-xs"></i>
+          <span class="hidden sm:inline">Fullscreen</span>
+        </button>
+        <button onclick="closeGameModal()" class="px-3.5 py-1.5 bg-rose-600/90 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition shadow-md shadow-rose-600/20">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Canvas Game Workspace -->
+    <div class="flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden relative" id="gameCanvasWrapper">
+      <div id="gameCustomContainer" class="w-full max-w-4xl flex justify-center items-center">
+        <canvas id="activeCanvas" class="max-w-full max-h-full aspect-video shadow-2xl border border-slate-800/80 rounded-2xl bg-slate-950"></canvas>
+      </div>
+    </div>
+
+    <!-- Modal Footer Controls -->
+    <div class="p-3 bg-slate-900/90 border-t border-slate-800 text-center text-xs text-gray-400 flex flex-col sm:flex-row justify-between items-center px-6 gap-2">
+      <div id="modalInstructions" class="flex items-center space-x-2 text-gray-300">
+        <i class="fa-solid fa-keyboard text-cyan-400"></i>
+        <span id="controlText">Use Keyboard Arrow keys or Spacebar to play.</span>
+      </div>
+      <div class="text-slate-400 text-[11px]">
+        Press <span class="bg-slate-800 text-rose-400 px-2 py-0.5 rounded font-bold border border-slate-700">P</span> anytime to trigger Panic Hide
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CLOAK CUSTOMIZER MODAL -->
+  <div id="cloakModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="glass-panel max-w-md w-full rounded-2xl p-6 space-y-5 border border-slate-700/80 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-secret text-purple-400"></i> Tab Cloaker
+        </h3>
+        <button onclick="toggleTabCloakModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <p class="text-xs text-gray-400">Select a disguise to instantly change this tab's icon and title in your browser bar.</p>
+
+      <div class="space-y-2.5">
+        <button onclick="setTabDisguise('Google Docs', 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico')" 
+          class="w-full p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 flex items-center space-x-3 text-left transition active:scale-98">
+          <img src="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" class="w-6 h-6">
+          <div>
+            <p class="text-xs font-bold text-gray-200">Google Docs</p>
+            <p class="text-[10px] text-gray-400">Title: Google Docs</p>
+          </div>
+        </button>
+
+        <button onclick="setTabDisguise('Classes', 'https://ssl.gstatic.com/classroom/favicon.png')" 
+          class="w-full p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 flex items-center space-x-3 text-left transition active:scale-98">
+          <img src="https://ssl.gstatic.com/classroom/favicon.png" class="w-6 h-6" onerror="this.src='https://google.com/favicon.ico'">
+          <div>
+            <p class="text-xs font-bold text-gray-200">Google Classroom</p>
+            <p class="text-[10px] text-gray-400">Title: Classes</p>
+          </div>
+        </button>
+
+        <button onclick="setTabDisguise('My Drive - Google Drive', 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png')" 
+          class="w-full p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 flex items-center space-x-3 text-left transition active:scale-98">
+          <img src="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png" class="w-6 h-6">
+          <div>
+            <p class="text-xs font-bold text-gray-200">Google Drive</p>
+            <p class="text-[10px] text-gray-400">Title: My Drive - Google Drive</p>
+          </div>
+        </button>
+      </div>
+
+      <button onclick="toggleTabCloakModal()" class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-indigo-600 font-bold text-xs text-white rounded-xl shadow-lg">Save Settings</button>
+    </div>
+  </div>
+
+  <script>
+    // Database of playable HTML5 Canvas Games
+    const GAMES = [
+      { id: 'snake', title: 'Cyber Snake', category: 'Arcade', rating: '4.9', icon: 'fa-solid fa-staff-snake', color: 'from-emerald-600 to-teal-800', desc: 'Classic retro snake with smooth canvas controls & food multipliers.', controls: 'Use Arrow Keys to change movement direction.' },
+      { id: 'pong', title: 'Space Pong AI', category: 'Classics', rating: '4.7', icon: 'fa-solid fa-table-tennis-paddle-ball', color: 'from-cyan-600 to-blue-800', desc: 'Classic paddle tennis game with smart adaptive computer AI.', controls: 'Use Up / Down Arrow keys to move paddle.' },
+      { id: 'flappy', title: 'Flappy Cyber', category: 'Action', rating: '4.8', icon: 'fa-solid fa-dove', color: 'from-amber-500 to-orange-700', desc: 'Timing platformer where you fly through endless barriers.', controls: 'Press Spacebar or Up Arrow to flap wings.' },
+      { id: 'tictactoe', title: 'Tic Tac Toe AI', category: 'Puzzle', rating: '4.6', icon: 'fa-solid fa-xmarks-lines', color: 'from-indigo-600 to-purple-800', desc: 'Strategic 3x3 grid puzzle against an intelligent CPU algorithm.', controls: 'Click on any open tile to place your marker.' },
+      { id: 'breakout', title: 'Brick Breaker', category: 'Arcade', rating: '4.8', icon: 'fa-solid fa-cubes-stacked', color: 'from-rose-600 to-red-800', desc: 'Destroy brick formations using your reflective paddle & bounce ball.', controls: 'Move Mouse left and right to control paddle.' },
+      { id: 'clicker', title: 'Crypto Clicker', category: 'Casual', rating: '4.7', icon: 'fa-solid fa-coins', color: 'from-yellow-500 to-amber-700', desc: 'Satisfying idle clicker game with auto-miners and score scaling.', controls: 'Click the central crypto coin to mine currency!' }
+    ];
+
+    const CATEGORIES = ['All', 'Arcade', 'Action', 'Puzzle', 'Classics', 'Casual'];
+    let activeCategory = 'All';
+    let activeGameLoop = null;
+
+    // Initialization
+    function initUI() {
+      renderCategories();
+      renderGames();
+
+      // Listen for Panic Key [P]
+      window.addEventListener('keydown', (e) => {
+        if ((e.key === 'p' || e.key === 'P') && !isInputFocused()) {
+          triggerPanic();
+        }
+      });
+    }
+
+    function isInputFocused() {
+      const active = document.activeElement;
+      return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categoryContainer');
+      container.innerHTML = CATEGORIES.map(cat => `
+        <button onclick="filterCategory('${cat}')" 
+          class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeCategory === cat 
+            ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/20' 
+            : 'bg-slate-900/80 text-gray-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+          }">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function renderGames(filterText = '') {
+      const grid = document.getElementById('gameGrid');
+      const noResults = document.getElementById('noResults');
+
+      let filtered = GAMES.filter(g => {
+        const matchesCat = activeCategory === 'All' ? true : g.category === activeCategory;
+        const matchesSearch = g.title.toLowerCase().includes(filterText.toLowerCase()) || 
+                              g.category.toLowerCase().includes(filterText.toLowerCase());
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+      }
+
+      noResults.classList.add('hidden');
+      grid.innerHTML = filtered.map(game => `
+        <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group cursor-pointer relative" onclick="openGameModal('${game.id}')">
+          <div class="h-32 bg-gradient-to-br ${game.color} p-4 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-3 -bottom-3 opacity-20 text-6xl text-white group-hover:scale-110 transition-transform">
+              <i class="${game.icon}"></i>
+            </div>
+            <div class="flex justify-between items-center z-10">
+              <span class="px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-[10px] font-bold text-cyan-300 border border-white/10">
+                ${game.category}
+              </span>
+            </div>
+            <div class="z-10 flex items-center space-x-2">
+              <i class="${game.icon} text-white text-xl"></i>
+            </div>
+          </div>
+
+          <div class="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-gray-100 group-hover:text-cyan-400 transition-colors line-clamp-1">${game.title}</h3>
+              <p class="text-[11px] text-gray-400 line-clamp-2 mt-0.5">${game.desc}</p>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-gray-400">
+              <span class="flex items-center text-amber-400 font-semibold">
+                <i class="fa-solid fa-star text-[10px] mr-1"></i>${game.rating}
+              </span>
+              <span class="text-cyan-400 font-bold group-hover:translate-x-1 transition-transform flex items-center">
+                PLAY <i class="fa-solid fa-play text-[9px] ml-1"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      activeCategory = cat;
+      renderCategories();
+      renderGames(document.getElementById('searchInput').value);
+    }
+
+    function handleSearch() {
+      renderGames(document.getElementById('searchInput').value);
+    }
+
+    function handleMobileSearch() {
+      renderGames(document.getElementById('mobileSearchInput').value);
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('mobileSearchInput').value = '';
+      renderGames();
+    }
+
+    // STEALTH CONTROL FUNCTIONS
+    function triggerPanic() {
+      window.location.href = "https://classroom.google.com";
+    }
+
+    function toggleTabCloakModal() {
+      const modal = document.getElementById('cloakModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function setTabDisguise(title, iconUrl) {
+      document.getElementById('tabTitle').innerText = title;
+      document.getElementById('tabFavicon').href = iconUrl;
+      toggleTabCloakModal();
+    }
+
+    function launchAboutBlank() {
+      const win = window.open('about:blank', '_blank');
+      if (!win) {
+        alert('Pop-up blocked! Please allow pop-ups for this site.');
+        return;
+      }
+      const doc = win.document;
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Google Docs</title>
+          <style>html, body { margin:0; height:100%; overflow:hidden; background:#080c14; }</style>
+        </head>
+        <body>
+          <iframe src="${window.location.href}" style="border:none; width:100%; height:100%;"></iframe>
+        </body>
+        </html>
+      `);
+      doc.close();
+    }
+
+    let currentActiveGameId = null;
+
+    function openGameModal(gameId) {
+      const game = GAMES.find(g => g.id === gameId);
+      if (!game) return;
+
+      currentActiveGameId = gameId;
+      document.getElementById('modalGameTitle').innerText = game.title;
+      document.getElementById('modalGameCategory').innerText = game.category;
+      document.getElementById('controlText').innerText = game.controls;
+      
+      const modal = document.getElementById('gameModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      loadMiniGame(gameId);
+    }
+
+    function closeGameModal() {
+      if (activeGameLoop) {
+        cancelAnimationFrame(activeGameLoop);
+        clearInterval(activeGameLoop);
+        activeGameLoop = null;
+      }
+      window.onkeydown = null;
+      const modal = document.getElementById('gameModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function resetCurrentGame() {
+      if (currentActiveGameId) {
+        loadMiniGame(currentActiveGameId);
+      }
+    }
+
+    function toggleModalFullscreen() {
+      const wrapper = document.getElementById('gameCanvasWrapper');
+      if (!document.fullscreenElement) {
+        wrapper.requestFullscreen().catch(() => alert('Fullscreen not supported'));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Canvas Mini-Game Engines
+    function loadMiniGame(gameId) {
+      if (activeGameLoop) {
+        cancelAnimationFrame(activeGameLoop);
+        clearInterval(activeGameLoop);
+        activeGameLoop = null;
+      }
+
+      const canvas = document.getElementById('activeCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 800;
+      canvas.height = 480;
+
+      switch(gameId) {
+        case 'snake': runSnakeGame(canvas, ctx); break;
+        case 'pong': runPongGame(canvas, ctx); break;
+        case 'flappy': runFlappyGame(canvas, ctx); break;
+        case 'tictactoe': runTicTacToeGame(canvas, ctx); break;
+        case 'breakout': runBreakoutGame(canvas, ctx); break;
+        case 'clicker': runClickerGame(canvas, ctx); break;
+        default: runSnakeGame(canvas, ctx);
+      }
+    }
+
+    // 1. SNAKE GAME
+    function runSnakeGame(canvas, ctx) {
+      let snake = [{x: 10, y: 10}];
+      let food = {x: 15, y: 12};
+      let dx = 1, dy = 0;
+      let score = 0;
+      const gridSize = 20;
+      const tileX = canvas.width / gridSize;
+      const tileY = canvas.height / gridSize;
+
+      window.onkeydown = (e) => {
+        if(e.key === 'ArrowUp' && dy !== 1) { dx = 0; dy = -1; }
+        if(e.key === 'ArrowDown' && dy !== -1) { dx = 0; dy = 1; }
+        if(e.key === 'ArrowLeft' && dx !== 1) { dx = -1; dy = 0; }
+        if(e.key === 'ArrowRight' && dx !== -1) { dx = 1; dy = 0; }
+      };
+
+      function loop() {
+        let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+        if(head.x < 0 || head.x >= tileX || head.y < 0 || head.y >= tileY) {
+          snake = [{x: 10, y: 10}]; dx = 1; dy = 0; score = 0;
+        }
+
+        snake.unshift(head);
+
+        if(head.x === food.x && head.y === food.y) {
+          score += 10;
+          food = { x: Math.floor(Math.random() * tileX), y: Math.floor(Math.random() * tileY) };
+        } else {
+          snake.pop();
+        }
+
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+
+        snake.forEach((part, idx) => {
+          ctx.fillStyle = idx === 0 ? '#06b6d4' : '#10b981';
+          ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Inter';
+        ctx.fillText(`Score: ${score}`, 20, 30);
+      }
+      activeGameLoop = setInterval(loop, 80);
+    }
+
+    // 2. RETRO PONG GAME
+    function runPongGame(canvas, ctx) {
+      let pHeight = 90, pWidth = 12;
+      let playerY = canvas.height / 2 - pHeight / 2;
+      let aiY = canvas.height / 2 - pHeight / 2;
+      let bx = canvas.width / 2, by = canvas.height / 2;
+      let bSpeedX = 5, bSpeedY = 3;
+
+      window.onkeydown = (e) => {
+        if(e.key === 'ArrowUp') playerY = Math.max(10, playerY - 25);
+        if(e.key === 'ArrowDown') playerY = Math.min(canvas.height - pHeight - 10, playerY + 25);
+      };
+
+      function draw() {
+        bx += bSpeedX; by += bSpeedY;
+
+        if(aiY + pHeight / 2 < by - 10) aiY += 3.5;
+        else if(aiY + pHeight / 2 > by + 10) aiY -= 3.5;
+
+        if(by <= 0 || by >= canvas.height) bSpeedY = -bSpeedY;
+
+        if(bx <= 30 && by >= playerY && by <= playerY + pHeight) bSpeedX = -bSpeedX;
+        if(bx >= canvas.width - 30 && by >= aiY && by <= aiY + pHeight) bSpeedX = -bSpeedX;
+
+        if(bx < 0 || bx > canvas.width) {
+          bx = canvas.width / 2; by = canvas.height / 2; bSpeedX = -bSpeedX;
+        }
+
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#06b6d4'; ctx.fillRect(20, playerY, pWidth, pHeight);
+        ctx.fillStyle = '#f43f5e'; ctx.fillRect(canvas.width - 30, aiY, pWidth, pHeight);
+
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+
+        activeGameLoop = requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // 3. FLAPPY CYBER GAME
+    function runFlappyGame(canvas, ctx) {
+      let birdY = canvas.height / 2, velocity = 0, gravity = 0.4;
+      let pipes = [];
+      let score = 0;
+
+      window.onkeydown = (e) => {
+        if(e.code === 'Space' || e.key === 'ArrowUp') velocity = -7;
+      };
+
+      function loop() {
+        velocity += gravity;
+        birdY += velocity;
+
+        if(pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 220) {
+          let gapY = Math.random() * (canvas.height - 180) + 40;
+          pipes.push({ x: canvas.width, top: gapY, bottom: gapY + 120 });
+        }
+
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#10b981';
+        pipes.forEach(p => {
+          p.x -= 3;
+          ctx.fillRect(p.x, 0, 50, p.top);
+          ctx.fillRect(p.x, p.bottom, 50, canvas.height - p.bottom);
+
+          if(p.x < 70 && p.x + 50 > 50 && (birdY < p.top || birdY > p.bottom)) {
+            birdY = canvas.height / 2; velocity = 0; pipes = []; score = 0;
+          }
+        });
+
+        if(birdY > canvas.height || birdY < 0) {
+          birdY = canvas.height / 2; velocity = 0; pipes = []; score = 0;
+        }
+
+        ctx.fillStyle = '#a855f7'; ctx.fillRect(50, birdY, 20, 20);
+        ctx.fillStyle = '#fff'; ctx.font = '16px Inter'; ctx.fillText(`Score: ${score++}`, 20, 30);
+
+        activeGameLoop = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    // 4. TIC TAC TOE GAME
+    function runTicTacToeGame(canvas, ctx) {
+      let board = ['', '', '', '', '', '', '', '', ''];
+
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const col = Math.floor((e.clientX - rect.left) / (canvas.width / 3));
+        const row = Math.floor((e.clientY - rect.top) / (canvas.height / 3));
+        const idx = row * 3 + col;
+
+        if(board[idx] === '') {
+          board[idx] = 'X';
+          let empty = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+          if(empty.length > 0) {
+            let aiChoice = empty[Math.floor(Math.random() * empty.length)];
+            board[aiChoice] = 'O';
+          }
+          drawBoard();
+        }
+      };
+
+      function drawBoard() {
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#334155'; ctx.lineWidth = 4;
+
+        for(let i = 1; i < 3; i++) {
+          ctx.beginPath(); ctx.moveTo(i * (canvas.width / 3), 0); ctx.lineTo(i * (canvas.width / 3), canvas.height); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i * (canvas.height / 3)); ctx.lineTo(canvas.width, i * (canvas.height / 3)); ctx.stroke();
+        }
+
+        board.forEach((val, i) => {
+          let cx = (i % 3) * (canvas.width / 3) + canvas.width / 6;
+          let cy = Math.floor(i / 3) * (canvas.height / 3) + canvas.height / 6;
+
+          if(val === 'X') {
+            ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 8;
+            ctx.beginPath(); ctx.moveTo(cx - 30, cy - 30); ctx.lineTo(cx + 30, cy + 30);
+            ctx.moveTo(cx + 30, cy - 30); ctx.lineTo(cx - 30, cy + 30); ctx.stroke();
+          } else if(val === 'O') {
+            ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 8;
+            ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.stroke();
+          }
+        });
+      }
+      drawBoard();
+    }
+
+    // 5. BRICK BREAKER GAME
+    function runBreakoutGame(canvas, ctx) {
+      let x = canvas.width / 2, y = canvas.height - 30;
+      let dx = 4, dy = -4;
+      let pWidth = 100, pX = (canvas.width - pWidth) / 2;
+      let bricks = [];
+
+      for(let c=0; c<7; c++) {
+        bricks[c] = [];
+        for(let r=0; r<4; r++) bricks[c][r] = { x: 0, y: 0, status: 1 };
+      }
+
+      window.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        pX = e.clientX - rect.left - pWidth / 2;
+      };
+
+      function draw() {
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for(let c=0; c<7; c++) {
+          for(let r=0; r<4; r++) {
+            if(bricks[c][r].status === 1) {
+              let bx = c * (100 + 10) + 15;
+              let by = r * (25 + 10) + 40;
+              bricks[c][r].x = bx; bricks[c][r].y = by;
+              ctx.fillStyle = '#06b6d4'; ctx.fillRect(bx, by, 100, 25);
+
+              if(x > bx && x < bx + 100 && y > by && y < by + 25) {
+                dy = -dy; bricks[c][r].status = 0;
+              }
+            }
+          }
+        }
+
+        ctx.fillStyle = '#a855f7'; ctx.fillRect(pX, canvas.height - 20, pWidth, 12);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fill();
+
+        if(x + dx > canvas.width - 8 || x + dx < 8) dx = -dx;
+        if(y + dy < 8) dy = -dy;
+        else if(y + dy > canvas.height - 28) {
+          if(x > pX && x < pX + pWidth) dy = -dy;
+          else { x = canvas.width/2; y = canvas.height-30; }
+        }
+
+        x += dx; y += dy;
+        activeGameLoop = requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // 6. CRYPTO CLICKER
+    function runClickerGame(canvas, ctx) {
+      let coins = 0;
+      canvas.onclick = () => { coins += 1; draw(); };
+
+      function draw() {
+        ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#eab308'; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 65, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.font = 'bold 45px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('₿', canvas.width/2, canvas.height/2);
+
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 24px Inter';
+        ctx.fillText(`Mined Crypto: ${coins}`, canvas.width/2, 60);
+      }
+      draw();
+    }
+
+    // Start App
+    window.onload = initUI;
+  </script>
+</body>
+</html>
